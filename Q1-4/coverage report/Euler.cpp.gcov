@@ -1,0 +1,188 @@
+        -:    0:Source:Euler.cpp
+        -:    0:Graph:Euler.gcno
+        -:    0:Data:Euler.gcda
+        -:    0:Runs:1
+        -:    1:#include "Euler.hpp"
+        -:    2:
+        -:    3:using namespace std;
+        -:    4:enum
+        -:    5:{
+        -:    6:    valid = 1,
+        -:    7:    invalid = 0
+        -:    8:};
+        -:    9:
+        1:   10:Euler::Euler(int n, int m) : n(n), m(m)
+        -:   11:{
+        1:   12:    if (Euler::checkValid(n, m) == invalid)
+        -:   13:    {
+    #####:   14:        cout << "Invalid input" << endl;
+    #####:   15:        this->n = 0;
+    #####:   16:        this->m = 0;
+    #####:   17:        return;
+        -:   18:    }
+        1:   19:    mat.resize(n, std::vector<int>(n, 0));
+    =====:   20:}
+        -:   21:
+        -:   22:// n is the number of vertices and m is the number of edges
+        1:   23:int Euler::checkValid(int n, int m)
+        -:   24:{
+        1:   25:    if (n <= 0 || m < 0)
+        -:   26:    { // should be atleast 1 vertex and non-negative amount of edges
+    #####:   27:        return invalid;
+        -:   28:    }
+        -:   29:
+        1:   30:    if (m > n * (n - 1))
+        -:   31:    { // m should be less than n*(n-1)
+    #####:   32:        return invalid;
+        -:   33:    }
+        -:   34:
+        1:   35:    return valid;
+        -:   36:}
+        -:   37:
+        1:   38:void Euler::printMat()
+        -:   39:{
+        5:   40:    for (size_t i = 0; i < mat.size(); i++)
+        -:   41:    {
+       16:   42:        for (size_t j = 0; j < mat[0].size() - 1; j++)
+        -:   43:        {
+       12:   44:            cout << mat[i][j] << " |";
+        -:   45:        }
+        4:   46:        cout << mat[i][mat[0].size() - 1] << endl;
+        -:   47:    }
+        1:   48:}
+        -:   49:
+       12:   50:void Euler::newEdge(int u, int v)
+        -:   51:{
+       12:   52:    if(u == v || u < 0 || v < 0 || u > n || v > n){
+    #####:   53:        cout << "Invalid edge" << endl;
+    #####:   54:        return;
+        -:   55:    }
+       12:   56:    u--;
+       12:   57:    v--;
+       12:   58:    mat[u][v] = 1;
+       12:   59:    this->m++;
+       12:   60:    cout << "Successfuly added the edge" << endl;
+        -:   61:}
+        -:   62:
+    #####:   63:void Euler::removeEdge(int u, int v)
+        -:   64:{
+    #####:   65:    u--;
+    #####:   66:    v--;
+    #####:   67:    mat[u][v] = 0;
+    #####:   68:    this->m--;
+    #####:   69:    cout << "Successfuly removed the edge" << endl;
+    #####:   70:}
+        -:   71:
+       74:   72:int Euler::getEdge(int u, int v)
+        -:   73:{
+       74:   74:    u--;
+       74:   75:    v--;
+       74:   76:    return mat[u][v];
+        -:   77:}
+        -:   78:
+        -:   79:// check if the graph contain an euler circle
+        1:   80:void Euler::eulerCircuit()
+        -:   81:{
+        1:   82:    cout << "The number of edges in the graph is: " << m << endl;
+        1:   83:    if(!inOutEqual())
+        -:   84:    {
+    #####:   85:        cout << "The graph does not contain an euler circle" << endl;
+    #####:   86:        cout << "In-degree and out-degree of every vertex are not same" << endl;
+    #####:   87:        return;
+        -:   88:    }
+        1:   89:    if(!nonZeroDegreeOneSCC())
+        -:   90:    {
+    #####:   91:        cout << "The graph does not contain an euler circle" << endl;
+    #####:   92:        cout << "All vertices with nonzero degree do not belong to a single strongly connected component" << endl;
+    #####:   93:        return;
+        -:   94:    }
+        1:   95:    cout << "The graph contain an euler circle" << endl;
+        -:   96:}
+        -:   97:
+        1:   98:bool Euler::inOutEqual()
+        -:   99:{
+        5:  100:    for (size_t i = 0; i < mat.size(); i++)
+        -:  101:    {
+        4:  102:        int in = 0, out = 0;
+       20:  103:        for (size_t j = 0; j < mat[0].size(); j++)
+        -:  104:        {
+       16:  105:            in += mat[j][i];
+       16:  106:            out += mat[i][j];
+        -:  107:        }
+        4:  108:        if (in != out)
+        -:  109:        {
+    #####:  110:            return false;
+        -:  111:        }
+        -:  112:    }
+        1:  113:    return true;
+        -:  114:}
+        -:  115:
+        -:  116:// finding all vertices reachable from v
+        4:  117:void Euler::fillOrder(const vector<vector<int>>& matrix, int v, vector<bool>& visited, list<int>& lst) {
+        4:  118:    visited[v] = true;
+       20:  119:    for (size_t i = 0; i < matrix[v].size(); i++) {
+       16:  120:        if (matrix[v][i] != 0 && !visited[i]) {
+        3:  121:            fillOrder(matrix, i, visited, lst);
+        -:  122:        }
+        -:  123:    }
+        4:  124:    lst.push_back(v);
+        4:  125:}
+        -:  126:
+        -:  127:// all edges are reversed
+        1:  128:vector<vector<int>> Euler::getTranspose(const vector<vector<int>>& matrix, int n) {
+        2:  129:    vector<vector<int>> transpose(n, vector<int>(n, 0));
+        5:  130:    for (int j = 0; j < n; j++) {
+       20:  131:        for (int i = 0; i < n; i++){
+       16:  132:            if (matrix[j][i] != 0) {
+       12:  133:                transpose[i][j] = 1;
+        -:  134:            }
+        -:  135:        }
+        -:  136:    }
+        1:  137:    return transpose;
+        -:  138:}
+        -:  139:
+        -:  140:// DFS until all vertices cannot be visited
+        4:  141:size_t Euler::DFS(const vector<vector<int>>& matrix, int v, vector<bool>& visited) {
+        4:  142:    visited[v] = true;
+        4:  143:    size_t count = 1;
+       20:  144:    for (size_t i = 0; i < matrix[v].size(); i++){
+       16:  145:        if (matrix[v][i] != 0 && !visited[i]) {
+        3:  146:            count += DFS(matrix, i, visited);
+        -:  147:        }
+        -:  148:    }
+        4:  149:    return count;
+        -:  150:}
+        -:  151:
+        1:  152:bool Euler::kosaraju(const vector<vector<int>>& matrix, int n) {
+        1:  153:    list<int> lst;                                                 // an empty list
+        1:  154:    vector<bool> visited(n, false);                                // array of visited with falses
+        -:  155:
+        5:  156:    for (int i = 0; i < n; i++) {                                       // for each vertex
+        4:  157:        if (!visited[i]) {                                              // if it wasn't visited 
+        1:  158:            fillOrder(matrix, i, visited, lst);                         // DFS to fill the list with vertices reachable from it
+        -:  159:        }
+        -:  160:    }
+        1:  161:    vector<vector<int>> transpose = getTranspose(matrix, n);  // flip the edges direction (rows are columns respectively)
+        -:  162:
+        5:  163:    for (int i = 0; i < n; i++) { visited[i] = false; }                 // set each vertex to not visited again
+        -:  164:
+        1:  165:    bool flag = false;
+        5:  166:    while (!lst.empty()) {                                              // while the list has vertices
+        4:  167:        int v = lst.back();                                             // take the last inserted vertex
+        4:  168:        lst.pop_back();                                                 // remove it from the list
+        4:  169:        if (!visited[v]) {                                              // if it wasn't visited
+        1:  170:            if(DFS(transpose, v, visited) > 1) {                        // if there are more than one vertex reachable from v
+        1:  171:                if(flag) {                                              // if there was already a strongly connected component
+    #####:  172:                    return false;                                       // return false
+        -:  173:                }
+        1:  174:                flag = true;                                            // set the flag to true
+        -:  175:            }
+        -:  176:        }
+        -:  177:    }
+        1:  178:    return true;
+        1:  179:}
+        -:  180:
+        1:  181:bool Euler::nonZeroDegreeOneSCC()
+        -:  182:{
+        1:  183:    return kosaraju(mat, mat.size());
+        -:  184:}

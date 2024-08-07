@@ -1,0 +1,97 @@
+        -:    0:Source:main.cpp
+        -:    0:Graph:main.gcno
+        -:    0:Data:main.gcda
+        -:    0:Runs:1
+        -:    1:#include "Euler.hpp"
+        -:    2:#include <iostream>
+        -:    3:#include <vector>
+        -:    4:#include <string>
+        -:    5:#include <stdio.h>
+        -:    6:#include <stdlib.h>
+        -:    7:#include <string.h>
+        -:    8:#include <unistd.h>
+        -:    9:#include <random>
+        -:   10:
+        -:   11:using namespace std;
+        -:   12:
+        1:   13:int main(int argc, char *argv[])
+        -:   14:{
+        -:   15:    int opt;
+        1:   16:    if (argc == 1)
+        -:   17:    {
+    #####:   18:        cerr << "Not enough arguments!" << endl;
+    #####:   19:        cout << "Usage: ./main -v <number of vertices> -e <number of edges> -s <seed>" << endl;
+    #####:   20:        return -1;
+        -:   21:    }
+        -:   22:
+        -:   23:    size_t n, m, seed;
+        1:   24:    std::mt19937 gen;
+        4:   25:    while ((opt = getopt(argc, argv, "v:e:s:")) != -1)
+        -:   26:    {
+        3:   27:        switch (opt)
+        -:   28:        {
+        1:   29:        case 'e':
+        1:   30:            m = atoi(optarg);
+        1:   31:            break;
+        1:   32:        case 'v':
+        1:   33:            n = atoi(optarg);
+        1:   34:            break;
+        1:   35:        case 's':
+        1:   36:            seed = atoi(optarg);
+        1:   37:            gen.seed(seed);
+        1:   38:            break;
+    #####:   39:        case '?':
+    #####:   40:            std::cerr << "Unknown option: -" << char(optopt) << std::endl;
+    #####:   41:            return -1;
+        -:   42:        }
+        -:   43:    }
+        -:   44:
+        1:   45:    if(m > n*(n-1)){
+    #####:   46:        cerr << "Too many edges!" << endl;
+    #####:   47:        return -1;
+        -:   48:    }
+        1:   49:    if(m < 0 || n <= 0){
+    #####:   50:        cerr << "Invalid input!" << endl;
+    #####:   51:        return -1;
+        -:   52:    }
+        -:   53:
+        -:   54:    // create a graph with n vertices and m edges
+        1:   55:    Euler graph(n, 0);
+        -:   56:
+        1:   57:    std::uniform_int_distribution<> distrib(0, 1);
+        -:   58:
+        -:   59:    // set the counter to count the number of edges added
+        1:   60:    size_t counter = 0;
+        -:   61:
+        8:   62:    while (counter < m) // while the number of edges added is less than m
+        -:   63:    {
+       31:   64:        for (size_t i = 1; i <= n; i++)
+        -:   65:        {
+      124:   66:            for (size_t j = 1; j <= n; j++)
+        -:   67:            {
+      100:   68:                if (counter >= m) // if the number of edges added is equal or biiger to m, break
+        -:   69:                {
+        1:   70:                    break;
+        -:   71:                }
+       99:   72:                if (i == j || graph.getEdge(i,j) == 1) // no self loops or multiple edges
+        -:   73:                {
+       67:   74:                    continue;
+        -:   75:                }
+       32:   76:                if (distrib(gen) == 1) // choose randomly if there is an edge between i and j
+        -:   77:                {
+       12:   78:                    graph.newEdge(i, j);
+       12:   79:                    counter++;
+        -:   80:                }
+        -:   81:            }
+       25:   82:            if (counter >= m) // if the number of edges added is equal or biiger to m, break
+        -:   83:            {
+        1:   84:                break;
+        -:   85:            }
+        -:   86:        }
+        -:   87:    }
+        1:   88:    graph.printMat();
+        -:   89:
+        1:   90:    graph.eulerCircuit();
+        -:   91:
+        1:   92:    return 0;
+        -:   93:}
