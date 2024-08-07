@@ -37,6 +37,8 @@ public:
 
     void removeEdge(int u, int v);
 
+    int getEdge(int u, int v);
+
     /**
      * @brief This function will check if the graph has an euler circle or not.
      * For a directed graph to have an Eulerian circuit, it must satisfy two conditions:

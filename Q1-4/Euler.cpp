@@ -49,7 +49,7 @@ void Euler::printMat()
 
 void Euler::newEdge(int u, int v)
 {
-    if(u == v || u < 0 || v < 0 || u >= n || v >= n){
+    if(u == v || u < 0 || v < 0 || u > n || v > n){
         cout << "Invalid edge" << endl;
         return;
     }
@@ -69,17 +69,27 @@ void Euler::removeEdge(int u, int v)
     cout << "Successfuly removed the edge" << endl;
 }
 
+int Euler::getEdge(int u, int v)
+{
+    u--;
+    v--;
+    return mat[u][v];
+}
+
 // check if the graph contain an euler circle
 void Euler::eulerCircuit()
 {
+    cout << "The number of edges in the graph is: " << m << endl;
     if(!inOutEqual())
     {
         cout << "The graph does not contain an euler circle" << endl;
+        cout << "In-degree and out-degree of every vertex are not same" << endl;
         return;
     }
     if(!nonZeroDegreeOneSCC())
     {
         cout << "The graph does not contain an euler circle" << endl;
+        cout << "All vertices with nonzero degree do not belong to a single strongly connected component" << endl;
         return;
     }
     cout << "The graph contain an euler circle" << endl;
@@ -106,7 +116,7 @@ bool Euler::inOutEqual()
 // finding all vertices reachable from v
 void Euler::fillOrder(const vector<vector<int>>& matrix, int v, vector<bool>& visited, list<int>& lst) {
     visited[v] = true;
-    for (int i = 0; i < matrix[v].size(); i++) {
+    for (size_t i = 0; i < matrix[v].size(); i++) {
         if (matrix[v][i] != 0 && !visited[i]) {
             fillOrder(matrix, i, visited, lst);
         }
@@ -131,7 +141,7 @@ vector<vector<int>> Euler::getTranspose(const vector<vector<int>>& matrix, int n
 size_t Euler::DFS(const vector<vector<int>>& matrix, int v, vector<bool>& visited) {
     visited[v] = true;
     size_t count = 1;
-    for (int i = 0; i < matrix[v].size(); i++){
+    for (size_t i = 0; i < matrix[v].size(); i++){
         if (matrix[v][i] != 0 && !visited[i]) {
             count += DFS(matrix, i, visited);
         }
