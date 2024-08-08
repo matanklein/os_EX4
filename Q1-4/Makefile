@@ -1,4 +1,4 @@
-flags = -Wall -g -Werror -fprofile-arcs -ftest-coverage
+flags = -Wall -g -Werror
 
 all: main
 
@@ -12,4 +12,4 @@ main: Euler.o main.o
 	g++ $(flags) Euler.o main.o -o main
 
 clean:
-	rm -f *.o main *.gcov *.gcda *.gcno
+	rm -f *.o main
