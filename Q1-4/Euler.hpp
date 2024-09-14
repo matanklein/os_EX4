@@ -15,15 +15,13 @@ private:
 
     bool inOutEqual();
 
-    bool nonZeroDegreeOneSCC();
+    bool oneBigSCC();
 
     void fillOrder(const std::vector<std::vector<int>> &matrix, int v, std::vector<bool> &visited, std::list<int> &lst);
 
     std::vector<std::vector<int>> getTranspose(const std::vector<std::vector<int>> &matrix, int n);
 
-    size_t DFS(const std::vector<std::vector<int>>& matrix, int v, std::vector<bool>& visited);
-
-    bool kosaraju(const std::vector<std::vector<int>>& matrix, int n);
+    int DFS(const std::vector<std::vector<int>>& matrix, int v, std::vector<bool>& visited);
 
 public:
 
@@ -39,6 +37,8 @@ public:
 
     int getEdge(int u, int v);
 
+    int getAnyEdge(std::vector<std::vector<int>>& m, int u);
+
     /**
      * @brief This function will check if the graph has an euler circle or not.
      * For a directed graph to have an Eulerian circuit, it must satisfy two conditions:
@@ -46,4 +46,6 @@ public:
      *  2. In-degree and out-degree of every vertex are same.
      */
     void eulerCircuit();
+
+    void findCircle();
 };

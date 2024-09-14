@@ -13,8 +13,7 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     int opt;
-    if (argc == 1)
-    {
+    if (argc == 1){
         cerr << "Not enough arguments!" << endl;
         cout << "Usage: ./main -v <number of vertices> -e <number of edges> -s <seed>" << endl;
         return -1;
@@ -54,39 +53,19 @@ int main(int argc, char *argv[])
     // create a graph with n vertices and m edges
     Euler graph(n, 0);
 
-    std::uniform_int_distribution<> distrib(0, 1);
+    std::uniform_int_distribution<size_t> distrib(1, n);
 
     // set the counter to count the number of edges added
     size_t counter = 0;
 
-    while (counter < m) // while the number of edges added is less than m
-    {
-        for (size_t i = 1; i <= n; i++)
-        {
-            for (size_t j = 1; j <= n; j++)
-            {
-                if (counter >= m) // if the number of edges added is equal or biiger to m, break
-                {
-                    break;
-                }
-                if (i == j || graph.getEdge(i,j) == 1) // no self loops or multiple edges
-                {
-                    continue;
-                }
-                if (distrib(gen) == 1) // choose randomly if there is an edge between i and j
-                {
-                    graph.newEdge(i, j);
-                    counter++;
-                }
-            }
-            if (counter >= m) // if the number of edges added is equal or biiger to m, break
-            {
-                break;
-            }
-        }
+    while (counter < m){ // while the number of edges added is less than m
+        size_t i = distrib(gen);
+        size_t j = distrib(gen);
+        if (i==j || graph.getEdge(i,j)==1){ continue; } // no self loops or multiple edges
+        graph.newEdge(i, j);
+        counter++;
     }
     graph.printMat();
-
     graph.eulerCircuit();
 
     return 0;

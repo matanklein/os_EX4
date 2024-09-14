@@ -1,6 +1,9 @@
 #include "Euler.hpp"
 
+#define NOEDGE -1;
+
 using namespace std;
+
 enum
 {
     valid = 1,
@@ -76,6 +79,15 @@ int Euler::getEdge(int u, int v)
     return mat[u][v];
 }
 
+int Euler::getAnyEdge(vector<vector<int>>& m, int u){
+    for(size_t i=0;i < m.size(); i++){
+        if(m[u][i] > 0){
+            return i;
+        }
+    }
+    return NOEDGE;
+}
+
 // check if the graph contain an euler circle
 void Euler::eulerCircuit()
 {
@@ -83,16 +95,16 @@ void Euler::eulerCircuit()
     if(!inOutEqual())
     {
         cout << "The graph does not contain an euler circle" << endl;
-        cout << "In-degree and out-degree of every vertex are not same" << endl;
         return;
     }
-    if(!nonZeroDegreeOneSCC())
+    if(!oneBigSCC())
     {
         cout << "The graph does not contain an euler circle" << endl;
-        cout << "All vertices with nonzero degree do not belong to a single strongly connected component" << endl;
+        cout << "There is no single strongly connected component" << endl;
         return;
     }
-    cout << "The graph contain an euler circle" << endl;
+    cout << "The graph contain an euler circle:" << endl;
+    findCircle();
 }
 
 bool Euler::inOutEqual()
@@ -107,6 +119,7 @@ bool Euler::inOutEqual()
         }
         if (in != out)
         {
+            cout << "In-degree("<<in<<") and out-degree("<<out<<") of " << i << " are different" << endl;
             return false;
         }
     }
@@ -138,9 +151,9 @@ vector<vector<int>> Euler::getTranspose(const vector<vector<int>>& matrix, int n
 }
 
 // DFS until all vertices cannot be visited
-size_t Euler::DFS(const vector<vector<int>>& matrix, int v, vector<bool>& visited) {
+int Euler::DFS(const std::vector<std::vector<int>>& matrix,int v,vector<bool>& visited) {
     visited[v] = true;
-    size_t count = 1;
+    int count = 1;
     for (size_t i = 0; i < matrix[v].size(); i++){
         if (matrix[v][i] != 0 && !visited[i]) {
             count += DFS(matrix, i, visited);
@@ -149,36 +162,56 @@ size_t Euler::DFS(const vector<vector<int>>& matrix, int v, vector<bool>& visite
     return count;
 }
 
-bool Euler::kosaraju(const vector<vector<int>>& matrix, int n) {
-    list<int> lst;                                                 // an empty list
-    vector<bool> visited(n, false);                                // array of visited with falses
-
-    for (int i = 0; i < n; i++) {                                       // for each vertex
-        if (!visited[i]) {                                              // if it wasn't visited 
-            fillOrder(matrix, i, visited, lst);                         // DFS to fill the list with vertices reachable from it
+bool Euler::oneBigSCC(){
+    n = mat.size();
+    list<int> lst;                                           // an empty list
+    vector<bool> visited(n, false);                          // array of visited with falses
+    
+    fillOrder(mat, 0, visited, lst);                      // DFS to fill the list with vertices reachable from it
+    for (int i = 0; i < n; i++) {                            // for each vertex
+        if (!visited[i]) {                                   // if it wasn't visited - False
+            return false; 
         }
     }
-    vector<vector<int>> transpose = getTranspose(matrix, n);  // flip the edges direction (rows are columns respectively)
+    vector<vector<int>> transpose = getTranspose(mat,n);  // flip the edges direction (rows are columns respectively)
 
-    for (int i = 0; i < n; i++) { visited[i] = false; }                 // set each vertex to not visited again
+    for (int i = 0; i < n; i++) { visited[i] = false; }      // set each vertex to not visited again
 
-    bool flag = false;
-    while (!lst.empty()) {                                              // while the list has vertices
-        int v = lst.back();                                             // take the last inserted vertex
-        lst.pop_back();                                                 // remove it from the list
-        if (!visited[v]) {                                              // if it wasn't visited
-            if(DFS(transpose, v, visited) > 1) {                        // if there are more than one vertex reachable from v
-                if(flag) {                                              // if there was already a strongly connected component
-                    return false;                                       // return false
-                }
-                flag = true;                                            // set the flag to true
-            }
-        }
-    }
-    return true;
+    int v = lst.back();                                  // take the last inserted vertex
+    int scc_size = DFS(transpose,v,visited);
+    return scc_size==n;
 }
 
-bool Euler::nonZeroDegreeOneSCC()
-{
-    return kosaraju(mat, mat.size());
+void Euler::findCircle() {
+    std::vector<std::vector<int>> copy = this->mat; // Copy of the adjacency matrix
+    list<int> lst;                 // Final merged Eulerian cycle
+    int start = 0;                 // Choose  starting vertex
+    lst.push_back(start);          // Start the cycle from the chosen vertex
+    while (true) {
+        auto it = lst.begin();     // Find a vertex in the current cycle that has unused edges         
+        bool foundUnusedEdge = false;
+        for(; it != lst.end(); ++it) {
+            if(getAnyEdge(copy,*it) != -1){  // If there's an unused edge from this vertex
+                foundUnusedEdge = true;
+                break;
+            }
+        }
+        if(!foundUnusedEdge){ break; }  // No unused edges, we're done
+
+        int v = *it;                    // Start from the vertex with edges
+        list<int> newCycle;             // To hold the new cycle
+        newCycle.push_back(v);          // Start the new cycle
+        int u = getAnyEdge(copy, v);    // Find an edge from v
+        while (u != -1) {
+            copy[v][u] = 0;            // Remove the edge from the copy graph
+            newCycle.push_back(u);     // Add the vertex to the new cycle
+            v = u;                     // Move to the next vertex
+            u = getAnyEdge(copy, v);   // Get the next edge
+        }
+        lst.insert(++it, ++newCycle.begin(), newCycle.end()); // Insert new cycle to main cycle at position 'it'
+    }
+
+    // Print Eulerian cycle
+    for(const auto& vertex : lst) { cout<<vertex<<" "; }
+    cout << endl;
 }
