@@ -1,12 +1,10 @@
 #include <pthread.h>
 #include "board.hpp"
 #include <unistd.h>
-#include <cstdio>
 #include <iostream>
 
 using namespace std;
 
-// Client function to simulate the client updating the board
 void* client(void* arg) {
     Board& board = Board::getInstance();
     char command;
@@ -18,8 +16,7 @@ void* client(void* arg) {
         if (command == 'q') {
             break;  // Exit the client
         } else if (command == 'c') {
-            cout << "Changing board..." << endl;
-            board.changeBoard();
+            board.runAction();  // Use the thread-safe runAction to modify the board
             board.printBoard();
         } else {
             cout << "Invalid input. Please enter 'c' to change or 'q' to quit." << endl;
@@ -35,7 +32,7 @@ int main() {
     // Creating one client thread
     pthread_t client_thread;
     pthread_create(&client_thread, nullptr, client, nullptr);
-    
+
     // Wait for the client thread to finish
     pthread_join(client_thread, nullptr);
 

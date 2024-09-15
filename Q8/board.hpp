@@ -10,7 +10,6 @@ using namespace std;
 // Singleton class for the board
 class Board : public Singleton {
 protected:
-    static pthread_mutex_t* mutex;
     static int (*board)[4];  // 2D array of 4x4
 
     Board();  // Constructor
@@ -23,9 +22,9 @@ public:
 
     static Board& getInstance();  // Singleton getter
 
-    // Implementations of the pure virtual functions from Singleton
-    virtual void changeBoard() override;
-    virtual void printBoard() override;
+    // Implementations of the pure virtual function from Singleton
+    virtual void action() override;
+    void printBoard();
 };
 
 #endif // BOARD_HPP

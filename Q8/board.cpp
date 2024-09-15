@@ -4,11 +4,10 @@
 #include <unistd.h>
 #include <cstring>
 
-pthread_mutex_t* Board::mutex = nullptr;
 int (*Board::board)[4] = nullptr;  // Pointer to a 2D array of size 4x4
 
 Board::Board() {
-    // Create shared memory for board and mutex
+    // Create shared memory for board
     int shm_fd = shm_open("/board_mem", O_CREAT | O_RDWR, 0666);
     ftruncate(shm_fd, sizeof(int) * 4 * 4);
 
@@ -20,29 +19,11 @@ Board::Board() {
         exit(EXIT_FAILURE);
     }
 
-    // Initialize the board with zeros if necessary
-    memset(board, 0, sizeof(int) * 4 * 4);
-
-    // Initialize mutex in shared memory
-    int shm_mutex_fd = shm_open("/mutex_mem", O_CREAT | O_RDWR, 0666);
-    ftruncate(shm_mutex_fd, sizeof(pthread_mutex_t));
-    mutex = static_cast<pthread_mutex_t*>(mmap(0, sizeof(pthread_mutex_t), PROT_READ | PROT_WRITE, MAP_SHARED, shm_mutex_fd, 0));
-
-    // Check if mutex needs initialization
-    static bool mutex_initialized = false;
-    if (!mutex_initialized) {
-        pthread_mutexattr_t attr;
-        pthread_mutexattr_init(&attr);
-        pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);  // Set mutex to be shared between processes
-        pthread_mutex_init(mutex, &attr);
-        pthread_mutexattr_destroy(&attr);
-        mutex_initialized = true;
-    }
+    memset(board, 0, sizeof(int) * 4 * 4);  // Initialize board to 0
 }
 
 Board::~Board() {
     munmap(board, sizeof(int) * 4 * 4);
-    munmap(mutex, sizeof(pthread_mutex_t));
 }
 
 Board& Board::getInstance() {
@@ -50,11 +31,7 @@ Board& Board::getInstance() {
     return instance;
 }
 
-void Board::changeBoard() {
-    cout << "Attempting to lock mutex..." << endl;
-    pthread_mutex_lock(mutex);  // Lock mutex
-    cout << "Mutex locked." << endl;
-
+void Board::action() {
     int i, j;
     cout << "Change the board (input i j): ";
     cin >> i >> j;
@@ -65,14 +42,9 @@ void Board::changeBoard() {
     } else {
         cout << "Invalid indices, must be between 0 and 3." << endl;
     }
-
-    cout << "Unlocking mutex..." << endl;
-    pthread_mutex_unlock(mutex);  // Unlock mutex
-    cout << "Mutex unlocked." << endl;
 }
 
 void Board::printBoard() {
-    pthread_mutex_lock(mutex);  // Lock mutex
     cout << "Printing board:" << endl;
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
@@ -80,5 +52,4 @@ void Board::printBoard() {
         }
         cout << endl;
     }
-    pthread_mutex_unlock(mutex);  // Unlock mutex
 }

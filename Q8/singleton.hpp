@@ -2,22 +2,50 @@
 #define SINGLETON_HPP
 
 #include <pthread.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <iostream>
 
-// Abstract class for the Singleton pattern
 class Singleton {
 protected:
-    // Protected constructor and destructor to prevent direct instantiation and deletion
-    Singleton() = default;
-    virtual ~Singleton() = default;
+    pthread_mutex_t* mutex = nullptr;
+
+    Singleton() {
+        int shm_mutex_fd = shm_open("/mutex_mem", O_CREAT | O_RDWR, 0666);
+        ftruncate(shm_mutex_fd, sizeof(pthread_mutex_t));
+        mutex = static_cast<pthread_mutex_t*>(mmap(0, sizeof(pthread_mutex_t), PROT_READ | PROT_WRITE, MAP_SHARED, shm_mutex_fd, 0));
+
+        static bool mutex_initialized = false;
+        if (!mutex_initialized) {
+            pthread_mutexattr_t attr;
+            pthread_mutexattr_init(&attr);
+            pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);  // Set mutex to be shared between processes
+            pthread_mutex_init(mutex, &attr);
+            pthread_mutexattr_destroy(&attr);
+            mutex_initialized = true;
+        }
+    }
+
+    virtual ~Singleton() {
+        munmap(mutex, sizeof(pthread_mutex_t));
+    };
+
+    virtual void action() = 0;
 
 public:
-    // Disable copy constructor and assignment
     Singleton(const Singleton&) = delete;
     Singleton& operator=(const Singleton&) = delete;
 
-    // Pure virtual functions that must be implemented by derived classes
-    virtual void changeBoard() = 0;
-    virtual void printBoard() = 0;
+    void runAction() { 
+        if (mutex != nullptr) {
+            pthread_mutex_lock(mutex);  // Lock mutex
+            action();
+            pthread_mutex_unlock(mutex);  // Unlock mutex
+        } else {
+            std::cerr << "Mutex is not initialized!" << std::endl;
+        }
+    };
 };
 
 #endif // SINGLETON_HPP
