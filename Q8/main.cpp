@@ -6,7 +6,7 @@
 using namespace std;
 
 void* client(void* arg) {
-    Board& board = Board::getInstance();
+    Board& board = Singleton::getInstance<Board>();;
     char command;
 
     while (true) {
@@ -27,7 +27,7 @@ void* client(void* arg) {
 }
 
 int main() {
-    Board& board = Board::getInstance();
+    Board& board = Singleton::getInstance<Board>();;
 
     // Creating one client thread
     pthread_t client_thread;

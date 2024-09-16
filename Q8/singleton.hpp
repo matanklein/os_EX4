@@ -11,6 +11,7 @@ class Singleton {
 protected:
     pthread_mutex_t* mutex = nullptr;
 
+    // Protected constructor to prevent instantiation outside the class
     Singleton() {
         int shm_mutex_fd = shm_open("/mutex_mem", O_CREAT | O_RDWR, 0666);
         ftruncate(shm_mutex_fd, sizeof(pthread_mutex_t));
@@ -25,19 +26,29 @@ protected:
             pthread_mutexattr_destroy(&attr);
             mutex_initialized = true;
         }
+        std::cout << "Singleton constructor called!" << std::endl;
     }
 
     virtual ~Singleton() {
         munmap(mutex, sizeof(pthread_mutex_t));
-    };
+    }
 
+    // Pure virtual function for derived classes to implement specific actions
     virtual void action() = 0;
 
 public:
+    // Delete copy constructor and assignment operator
     Singleton(const Singleton&) = delete;
     Singleton& operator=(const Singleton&) = delete;
 
-    void runAction() { 
+    // Templated getInstance method to handle derived classes
+    template <typename T>
+    static T& getInstance() {
+        static T instance;
+        return instance;
+    }
+
+    void runAction() {
         if (mutex != nullptr) {
             pthread_mutex_lock(mutex);  // Lock mutex
             action();
@@ -45,7 +56,7 @@ public:
         } else {
             std::cerr << "Mutex is not initialized!" << std::endl;
         }
-    };
+    }
 };
 
 #endif // SINGLETON_HPP

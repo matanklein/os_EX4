@@ -26,11 +26,6 @@ Board::~Board() {
     munmap(board, sizeof(int) * 4 * 4);
 }
 
-Board& Board::getInstance() {
-    static Board instance;
-    return instance;
-}
-
 void Board::action() {
     int i, j;
     cout << "Change the board (input i j): ";
